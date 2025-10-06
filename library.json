@@ -1,0 +1,56 @@
+{
+  "name": "HMS_SoilSensor_DRIVER",
+  "version": "1.0.0",
+  "description": "This Package Provide Soil Sensor Driver Library for Cross Platform (ARDUINO/STM/ESP/nRF)",
+  "keywords": [
+    "Soil",
+    "Sensor",
+    "Driver",
+    "ESP32",
+    "STM32",
+    "nRF52",
+    "ADC"
+  ],
+  "authors": [
+    {
+      "name": "Hamas Saeed",
+      "email": "hamasaeed888@gmail.com",
+      "url": "https://github.com/Hamas888",
+      "maintainer": true
+    }
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Hamas888/HMS_SoilSensor_DRIVER.git"
+  },
+  "frameworks": ["arduino", "espidf"],
+  "platforms": ["espressif32"],
+  "build": {
+    "flags": [
+      "-std=gnu++17"
+    ],
+    "unflags": [
+      "-std=gnu++11"
+    ]
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/Hamas888/HMS_SoilSensor_DRIVER",
+  "examples": [
+    "examples"
+  ],
+  "export": {
+    "include": [
+      "include",
+      "src",
+      "examples",
+      "library.json",
+      "LICENSE",
+      "README.md"
+    ],
+    "exclude": [
+      "test",
+      ".pio",
+      ".vscode"
+    ]
+  }
+}
