@@ -62,6 +62,10 @@
     #include "main.h"
     #include <stdio.h>
     #include <stdint.h>
+    #include "cmath"
+    #include "math.h"
+    #include "float.h"
+    #include <algorithm>
     #if defined(osCMSIS) || defined(FREERTOS)
         #define HMS_SOIL_SENSOR_STM32_FREERTOS
     #endif
@@ -72,6 +76,14 @@
 #if defined(HMS_SOIL_SENSOR_DEBUG_ENABLED) && (HMS_SOIL_SENSOR_DEBUG_ENABLED == 1)
     #define HMS_SOIL_SENSOR_LOGGER_ENABLED
 #endif
+
+typedef enum {
+    HMS_SOIL_ADC_RANGE_WET=0,
+    HMS_SOIL_ADC_RANGE_MEDIUM,
+    HMS_SOIL_ADC_RANGE_DRY,
+    HMS_SOIL_ADC_RANGE_VERY_DRY,
+    HMS_SOIL_ADC_RANGE_INVALID
+} HMS_SOIL_ADC_RANGE;
 
 typedef enum {
     HMS_SOIL_SENSOR_OK       = 0x00,
@@ -96,7 +108,30 @@ class HMS_SoilSensor {
         #endif
 
         ~HMS_SoilSensor();
+        float                       calibrate(float ratioInCleanAir, float correctionFactor = 0.0);
+        
+        void                        ReadSensor();
+        float                       CalculateMoisture(float sensorVoltage,float adcValue);                       
+        HMS_SOIL_SENSOR_Status      init();
+        HMS_SOIL_SENSOR_Status      update(); 
+        HMS_SOIL_SENSOR_Type        getType() const                                   { return Type;                }
+        void                        setWetThreshold(float value = 0.0)                { wet = value;                }
+        void                        setDryThreshold(float value = 0.0)                { dry = value;                }
+        void                        setVCC(float value = 5)                           { vcc = value;                }
+        void                        setVoltResolution(float value = 3.3)              { voltageResolution = value;  }
+        
+        float                       getVoltage(bool read, bool injected = false, int value = 0);
+        float                       getResistance();
+        float                       getMoisture() const                               { return MoisturePercentage;            }
+        float                       getADC() const                                    { return adc;                 }
+        float                       getVCC() const                                    { return vcc;                 }
+        float                       getVoltResolution() const                         { return voltageResolution;   }
+        float                       getWetThreshold() const                           { return wet;                 }
+        float                       getDryThreshold() const                           { return dry;                 }
+        float                       getR0() const                                     { return r0;                  }
+        float                       getRL() const                                     { return rl;                  }
 
+               
     private:
         #if defined(HMS_SOIL_SENSOR_PLATFORM_ARDUINO)
         uint8_t         adcBitResolution    = 10;
@@ -112,12 +147,32 @@ class HMS_SoilSensor {
         uint8_t         adcBitResolution    = 10;
         uint8_t         pin                 = 36;
         #elif defined(HMS_SOIL_SENSOR_PLATFORM_STM32_HAL)
-        float             voltageResolution   = 3.3;
-        uint8_t           adcBitResolution    = 12;
-        ADC_HandleTypeDef *HMS_SOIL_SENSOR_hadc;
+        float                   voltageResolution       = 3.3;
+        uint8_t                 adcBitResolution        = 12;
+        ADC_HandleTypeDef       *HMS_SOIL_SENSOR_hadc;
+        HAL_StatusTypeDef       adcStatus;
         #endif
 
-        bool                    isInitialized;
+        bool                        isInitialized;
+        float                       moisture;
+        float                       vcc                 = 5.0;                  // Sensor supply voltage
+        float                       rl                  = 10;                   // Load resistance in kilo ohms
+        float                       r0;
+        float                       sensorVolt;                                 // Sensor voltage
+        float                       sensorResistance;                           // Sensor resistance
+        float                       adc;      
+        float                       wet;
+        float                       dry;    
+        float                       MoisturePercentage;   
+        float                       ratio;                                      // Rs/R0 ratio                 
+        uint8_t                     retries             = 2;                    // Number of read retries
+        uint8_t                     retryInterval       = 20;                   // Retry interval in milliseconds
+        HMS_SOIL_SENSOR_Type        Type;
+        HMS_SOIL_ADC_RANGE          adcRange;
+
+        void                        soilDelay(uint32_t ms);
+        void                        setDefaultValues();
+        HMS_SOIL_ADC_RANGE          CalculateAdcRange(float adcValue);
 };
 
-#endif // HMS_SOIL_SENSOR_DRIVER_H
+#endif // HMS_SOIL_SENSOR_DRsIVER_H
