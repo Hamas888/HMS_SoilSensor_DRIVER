@@ -78,20 +78,20 @@
 #endif
 
 typedef enum {
-    HMS_SOIL_ADC_RANGE_WET=0,
-    HMS_SOIL_ADC_RANGE_MEDIUM,
-    HMS_SOIL_ADC_RANGE_DRY,
-    HMS_SOIL_ADC_RANGE_VERY_DRY,
-    HMS_SOIL_ADC_RANGE_INVALID
+    HMS_SOIL_ADC_RANGE_WET          =0,
+    HMS_SOIL_ADC_RANGE_DRY          =1,
+    HMS_SOIL_ADC_RANGE_MEDIUM       =2,
+    HMS_SOIL_ADC_RANGE_INVALID      =3,
+    HMS_SOIL_ADC_RANGE_VERY_DRY     =4,
 } HMS_SOIL_ADC_RANGE;
 
 typedef enum {
-    HMS_SOIL_SENSOR_OK       = 0x00,
-    HMS_SOIL_SENSOR_ERROR    = 0x01,
+    HMS_SOIL_SENSOR_OK              = 0x00,
+    HMS_SOIL_SENSOR_ERROR           = 0x01,
 } HMS_SOIL_SENSOR_Status;
 
 typedef enum {
-    HMS_SOIL_SENSOR_TYPE_YL69   = 0x00,   // Analog Output
+    HMS_SOIL_SENSOR_TYPE_YL69       = 0x00,   // Analog Output
 } HMS_SOIL_SENSOR_Type;
 
 
@@ -108,28 +108,32 @@ class HMS_SoilSensor {
         #endif
 
         ~HMS_SoilSensor();
-        float                       calibrate(float ratioInCleanAir, float correctionFactor = 0.0);
         
-        void                        ReadSensor();
-        float                       CalculateMoisture(float sensorVoltage,float adcValue);                       
-        HMS_SOIL_SENSOR_Status      init();
-        HMS_SOIL_SENSOR_Status      update(); 
-        HMS_SOIL_SENSOR_Type        getType() const                                   { return Type;                }
-        void                        setWetThreshold(float value = 0.0)                { wet = value;                }
-        void                        setDryThreshold(float value = 0.0)                { dry = value;                }
-        void                        setVCC(float value = 5)                           { vcc = value;                }
-        void                        setVoltResolution(float value = 3.3)              { voltageResolution = value;  }
+        void  ReadSensor();
+        HMS_SOIL_SENSOR_Status init();
+        HMS_SOIL_SENSOR_Status update(); 
+        float CalculateMoisture(float sensorVoltage,float adcValue);   
+        float getVoltage(bool read, bool injected = false, int value = 0);
+        float calibrate(float ratioInCleanAir, float correctionFactor = 0.0);
         
-        float                       getVoltage(bool read, bool injected = false, int value = 0);
-        float                       getResistance();
-        float                       getMoisture() const                               { return MoisturePercentage;            }
-        float                       getADC() const                                    { return adc;                 }
-        float                       getVCC() const                                    { return vcc;                 }
-        float                       getVoltResolution() const                         { return voltageResolution;   }
-        float                       getWetThreshold() const                           { return wet;                 }
-        float                       getDryThreshold() const                           { return dry;                 }
-        float                       getR0() const                                     { return r0;                  }
-        float                       getRL() const                                     { return rl;                  }
+                            
+        void setWetThreshold(float value = 0.0)                { wet = value;                }
+        void setDryThreshold(float value = 0.0)                { dry = value;                }
+        void setVCC(float value = 5)                           { vcc = value;                }
+        void setVoltResolution(float value = 3.3)              { voltageResolution = value;  }
+        
+        float getResistance();
+        float getMoisture() const                              { return MoisturePercentage;  }
+        float getADC() const                                   { return adc;                 }
+        float getVCC() const                                   { return vcc;                 }
+        float getVoltResolution() const                        { return voltageResolution;   }
+        float getWetThreshold() const                          { return wet;                 }
+        float getDryThreshold() const                          { return dry;                 }
+        float getR0() const                                    { return r0;                  }
+        float getRL() const                                    { return rl;                  }
+        HMS_SOIL_SENSOR_Type getType() const                   { return Type;                }
+
+
 
                
     private:

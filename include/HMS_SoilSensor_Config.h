@@ -44,26 +44,33 @@
   │ Requires: ChronoLog library → https://github.com/Hamas888/ChronoLog │
   └─────────────────────────────────────────────────────────────────────┘
 */
-#define HMS_SOIL_SENSOR_DEBUG_ENABLED           0                            // Enable debug messages (1=enabled, 0=disabled)
+#define HMS_SOIL_SENSOR_DEBUG_ENABLED           0                               // Enable debug messages (1=enabled, 0=disabled)
   
-// ADC values measured for dry and wet soil
-#define HMS_SOIL_SENSOR_MOISTURE_MAX_VALUE      4095
-#define HMS_SOIL_SENSOR_MOISTURE_DRY_VALUE      4000                         // ADC value measured for dry soil
-#define HMS_SOIL_SENSOR_MOISTURE_WET_VALUE      1800                          // ADC value measured for wet soil
-// Moisture Thresholds ADC
-#define HMS_SOIL_SENSOR_THRESHOLD_DRY_PERCENT   30.0f                         // Threshold for dry soil in percent
-#define HMS_SOIL_SENSOR_THRESHOLD_WET_PERCENT   60.0f                         // Threshold for wet soil in percent
-// Volatge threashold
-#define HMS_SOIL_SENSOR_THRESHOLD_DRY_VOLTAGE   3.30f                          // Threshold voltage
-#define HMS_SOIL_SENSOR_THRESHOLD_WET_VOLTAGE   1.0f                          // Threshold voltage
-// Define ADC range limits for readability
-#define HMS_SOIL_ADC_VERY_WET_MAX               1000.0f
-#define HMS_SOIL_ADC_WET_MAX                    2000.0f
-#define HMS_SOIL_ADC_MEDIUM_MAX                 3000.0f
-#define HMS_SOIL_ADC_DRY_MAX                    4095.0f
 
-//ratio in clean air
-#define HMS_SOIL_SENSOR_CLEAN_AIR_RATIO         1.0f                          // Ratio of clean air
-#define HMS_SOIL_SENSOR_PERCENTAGE              100.0f
+#if defined(HMS_SOIL_SENSOR_PLATFORM_ARDUINO) || \
+  defined(HMS_SOIL_SENSOR_PLATFORM_ESP_IDF)
+  #define HMS_SOIL_SENSOR_MOISTURE_MAX_VALUE      1023                          // System ADC Max values (10-bit ADC: 0-1023)
+  #define HMS_SOIL_SENSOR_MOISTURE_DRY_VALUE      900                           // ADC value measured for dry soil
+  #define HMS_SOIL_SENSOR_MOISTURE_WET_VALUE      300                           // ADC value measured for wet soil
+#elif defined(HMS_SOIL_SENSOR_PLATFORM_ZEPHYR) || \
+  defined(HMS_SOIL_SENSOR_PLATFORM_STM32_HAL)
+  #define HMS_SOIL_SENSOR_MOISTURE_MAX_VALUE      4095                          // System ADC Max values (12-bit ADC: 0-4095)
+  #define HMS_SOIL_SENSOR_MOISTURE_DRY_VALUE      4000                          // ADC value measured for dry soil
+  #define HMS_SOIL_SENSOR_MOISTURE_WET_VALUE      1800                          // ADC value measured for wet soil
 
-#endif // HMS_NEO6M_CONFIG_H
+  #define HMS_SOIL_SENSOR_THRESHOLD_DRY_PERCENT   30.0f                         // Threshold for dry soil in percent
+  #define HMS_SOIL_SENSOR_THRESHOLD_WET_PERCENT   60.0f                         // Threshold for wet soil in percent
+
+  #define HMS_SOIL_SENSOR_THRESHOLD_DRY_VOLTAGE   3.30f                         // Threshold voltage For 3.3 ADC
+  #define HMS_SOIL_SENSOR_THRESHOLD_WET_VOLTAGE   1.0f                          // Threshold voltage For 3.3 ADC
+
+  #define HMS_SOIL_ADC_DRY_MAX                    4095.0f
+  #define HMS_SOIL_ADC_WET_MAX                    2000.0f
+  #define HMS_SOIL_ADC_MEDIUM_MAX                 3000.0f
+  #define HMS_SOIL_ADC_VERY_WET_MAX               1000.0f
+
+  #define HMS_SOIL_SENSOR_PERCENTAGE              100.0f
+  #define HMS_SOIL_SENSOR_CLEAN_AIR_RATIO         1.0f                          // Ratio of clean air
+#endif
+
+#endif // HMS_SOIL_SENSOR_CONFIG_H
