@@ -25,9 +25,6 @@
 HMS_SoilSensor::~HMS_SoilSensor(){}
 // call initlization to calibrate the resistnace and  Read the sensor 
 HMS_SOIL_SENSOR_Status HMS_SoilSensor::init(){
-    if(calibrate(HMS_SOIL_SENSOR_CLEAN_AIR_RATIO, 0.0) == 0.0){
-        return HMS_SOIL_SENSOR_ERROR;
-    }
     ReadSensor();
     return HMS_SOIL_SENSOR_OK;
 }
@@ -125,33 +122,7 @@ void HMS_SoilSensor::setDefaultValues(){
     setDryThreshold(dry);
     setWetThreshold(wet);
 }
-float HMS_SoilSensor::getResistance(){
-    sensorVolt = getVoltage(true, false, 0);
-    sensorResistance = (sensorVolt * rl) / (vcc - sensorVolt);
-    if(sensorResistance < 0) sensorResistance = 0;
-    #ifdef HMS_SOIL_SENSOR_LOGGER_ENABLED
-    soilLogger.debug("Sensor Resistance: %.2f", sensorResistance);
-    #endif
-    return sensorResistance;
-}
 
-// Call this Function to set Refrence Resistnace
-float HMS_SoilSensor::calibrate(float ratioInCleanAir, float correctionFactor){
-    // Read fresh voltage for calibration
-    sensorVolt = getVoltage(true, false, 0);
-    
-    float tempRSAir;
-    float temR0;
-    tempRSAir = ((vcc * rl) / sensorVolt) - rl;
-    if(tempRSAir < 0) tempRSAir = 0;
-    temR0 = tempRSAir / ratioInCleanAir;
-    temR0 += correctionFactor;
-    if(temR0 < 0) temR0 = 0;
-    // Automatically set the calculated R0 value
-    r0 = temR0;
-
-    return temR0;
-}
 float HMS_SoilSensor::CalculateMoisture(float sensorVolt, float adcValue)
 {
     adcRange = CalculateAdcRange(adcValue);
@@ -195,6 +166,5 @@ HMS_SOIL_ADC_RANGE HMS_SoilSensor::CalculateAdcRange(float adcValue){
     else {
         return  HMS_SOIL_ADC_RANGE_VERY_DRY;
     }
-
 }
 

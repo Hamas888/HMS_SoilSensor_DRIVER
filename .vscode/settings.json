@@ -1,5 +1,8 @@
 {
     "files.associations": {
-        "numbers": "cpp"
+        "numbers": "cpp",
+        "unordered_map": "cpp",
+        "numeric": "cpp",
+        "cstdint": "cpp"
     }
 }

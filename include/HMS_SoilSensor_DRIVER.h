@@ -114,7 +114,6 @@ class HMS_SoilSensor {
         HMS_SOIL_SENSOR_Status update(); 
         float CalculateMoisture(float sensorVoltage,float adcValue);   
         float getVoltage(bool read, bool injected = false, int value = 0);
-        float calibrate(float ratioInCleanAir, float correctionFactor = 0.0);
         
                             
         void setWetThreshold(float value = 0.0)                { wet = value;                }
@@ -122,15 +121,12 @@ class HMS_SoilSensor {
         void setVCC(float value = 5)                           { vcc = value;                }
         void setVoltResolution(float value = 3.3)              { voltageResolution = value;  }
         
-        float getResistance();
         float getMoisture() const                              { return MoisturePercentage;  }
         float getADC() const                                   { return adc;                 }
         float getVCC() const                                   { return vcc;                 }
         float getVoltResolution() const                        { return voltageResolution;   }
         float getWetThreshold() const                          { return wet;                 }
         float getDryThreshold() const                          { return dry;                 }
-        float getR0() const                                    { return r0;                  }
-        float getRL() const                                    { return rl;                  }
         HMS_SOIL_SENSOR_Type getType() const                   { return Type;                }
 
 
@@ -160,15 +156,11 @@ class HMS_SoilSensor {
         bool                        isInitialized;
         float                       moisture;
         float                       vcc                 = 5.0;                  // Sensor supply voltage
-        float                       rl                  = 10;                   // Load resistance in kilo ohms
-        float                       r0;
         float                       sensorVolt;                                 // Sensor voltage
-        float                       sensorResistance;                           // Sensor resistance
         float                       adc;      
         float                       wet;
         float                       dry;    
-        float                       MoisturePercentage;   
-        float                       ratio;                                      // Rs/R0 ratio                 
+        float                       MoisturePercentage;                                  // Rs/R0 ratio                 
         uint8_t                     retries             = 2;                    // Number of read retries
         uint8_t                     retryInterval       = 20;                   // Retry interval in milliseconds
         HMS_SOIL_SENSOR_Type        Type;
