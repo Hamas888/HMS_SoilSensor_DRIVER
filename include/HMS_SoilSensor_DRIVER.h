@@ -44,7 +44,7 @@
     #define HMS_SOIL_SENSOR_PLATFORM_ESP_IDF
 #elif defined(__ZEPHYR__)
     #define HMS_SOIL_SENSOR_PLATFORM_ZEPHYR
-#elif defined(__STM32__)
+#elif defined(__arm__) && (defined(USE_HAL_DRIVER) || defined(USE_FULL_LL_DRIVER))
     #define HMS_SOIL_SENSOR_PLATFORM_STM32_HAL
 #endif
 
@@ -104,7 +104,7 @@ class HMS_SoilSensor {
         #elif defined(HMS_SOIL_SENSOR_PLATFORM_ZEPHYR)
             HMS_SoilSensor(uint8_t pin, HMS_SOIL_SENSOR_Type sensorType = HMS_SOIL_SENSOR_TYPE_YL69  );
         #elif defined(HMS_SOIL_SENSOR_PLATFORM_STM32_HAL)
-            HMS_SoilSensor(ADC_HandleTypeDef *hadc, HMS_SOIL_SENSOR_Type sensorType = HMS_SOIL_SENSOR_TYPE_YL69  );
+            HMS_SoilSensor(ADC_HandleTypeDef *hadc, uint32_t channel, HMS_SOIL_SENSOR_Type sensorType = HMS_SOIL_SENSOR_TYPE_YL69);
         #endif
 
         ~HMS_SoilSensor();
@@ -114,12 +114,18 @@ class HMS_SoilSensor {
         HMS_SOIL_SENSOR_Status update(); 
         float CalculateMoisture(float sensorVoltage,float adcValue);   
         float getVoltage(bool read, bool injected = false, int value = 0);
+        #if defined(HMS_SOIL_SENSOR_PLATFORM_STM32_HAL)
+        int32_t readSoilADC(uint32_t channel);
+        #endif
         
                             
         void setWetThreshold(float value = 0.0)                { wet = value;                }
         void setDryThreshold(float value = 0.0)                { dry = value;                }
         void setVCC(float value = 5)                           { vcc = value;                }
         void setVoltResolution(float value = 3.3)              { voltageResolution = value;  }
+        #if defined(HMS_SOIL_SENSOR_PLATFORM_STM32_HAL)
+        void setADCChannel(uint32_t channel)                   { adcChannel = channel;       }
+        #endif
         
         float getMoisture() const                              { return MoisturePercentage;  }
         float getADC() const                                   { return adc;                 }
@@ -150,6 +156,7 @@ class HMS_SoilSensor {
         float                   voltageResolution       = 3.3;
         uint8_t                 adcBitResolution        = 12;
         ADC_HandleTypeDef       *HMS_SOIL_SENSOR_hadc;
+        uint32_t                adcChannel              = ADC_CHANNEL_9;
         HAL_StatusTypeDef       adcStatus;
         #endif
 

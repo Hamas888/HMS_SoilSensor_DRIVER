@@ -12,7 +12,7 @@
 #elif defined(HMS_SOIL_SENSOR_PLATFORM_ZEPHYR)
     HMS_SoilSensor(uint8_t pin, HMS_SOIL_SENSOR_Type sensorType = HMS_SOIL_SENSOR_TYPE_YL69){}
 #elif defined(HMS_SOIL_SENSOR_PLATFORM_STM32_HAL)
-    HMS_SoilSensor::HMS_SoilSensor(ADC_HandleTypeDef *hadc, HMS_SOIL_SENSOR_Type sensorType): HMS_SOIL_SENSOR_hadc{hadc}, Type{sensorType}{
+    HMS_SoilSensor::HMS_SoilSensor(ADC_HandleTypeDef *hadc, uint32_t channel, HMS_SOIL_SENSOR_Type sensorType): HMS_SOIL_SENSOR_hadc{hadc}, adcChannel{channel}, Type{sensorType}{
         if(HMS_SOIL_SENSOR_hadc == NULL)
         {
             #ifdef HMS_SOIL_SENSOR_LOGGER_ENABLED
@@ -23,6 +23,27 @@
     }
 #endif
 HMS_SoilSensor::~HMS_SoilSensor(){}
+
+#if defined(HMS_SOIL_SENSOR_PLATFORM_STM32_HAL)
+int32_t HMS_SoilSensor::readSoilADC(uint32_t channel)
+{
+    if (HMS_SOIL_SENSOR_hadc == NULL) return -1;
+
+    ADC_ChannelConfTypeDef sConfig = {0};
+    sConfig.Channel      = channel;
+    sConfig.Rank         = ADC_REGULAR_RANK_1;
+    sConfig.SamplingTime = ADC_SAMPLETIME_2CYCLES_5;
+    sConfig.SingleDiff   = ADC_SINGLE_ENDED;
+    sConfig.OffsetNumber = ADC_OFFSET_NONE;
+    sConfig.Offset       = 0;
+    if (HAL_ADC_ConfigChannel(HMS_SOIL_SENSOR_hadc, &sConfig) != HAL_OK) return -1;
+    if (HAL_ADC_Start(HMS_SOIL_SENSOR_hadc) != HAL_OK) return -1;
+    if (HAL_ADC_PollForConversion(HMS_SOIL_SENSOR_hadc, 100) != HAL_OK) return -1;
+    int32_t val = (int32_t)HAL_ADC_GetValue(HMS_SOIL_SENSOR_hadc);
+    HAL_ADC_Stop(HMS_SOIL_SENSOR_hadc);
+    return val;
+}
+#endif
 // call initlization to calibrate the resistnace and  Read the sensor 
 HMS_SOIL_SENSOR_Status HMS_SoilSensor::init(){
     ReadSensor();
@@ -46,27 +67,14 @@ float HMS_SoilSensor::getVoltage(bool read, bool injected, int value)
                 adc = analogRead(pin);
             #elif defined(HMS_SOIL_SENSOR_PLATFORM_STM32_HAL)
             // STM32 HAL ADC reading - assumes ADC is configured in CubeMX
-                adcStatus = HAL_ADC_Start(HMS_SOIL_SENSOR_hadc);
-                if(adcStatus != HAL_OK){
+                int32_t raw = readSoilADC(adcChannel);
+                if (raw < 0) {
                     #ifdef HMS_SOIL_SENSOR_LOGGER_ENABLED
-                    soilLogger.error("ADC start failed with status: %d", adcStatus);
+                    soilLogger.error("ADC read failed");
                     return 0.0;
                     #endif
                 }
-                adcStatus = HAL_ADC_PollForConversion(HMS_SOIL_SENSOR_hadc, 10);
-                if(adcStatus != HAL_OK){
-                    #ifdef HMS_SOIL_SENSOR_LOGGER_ENABLED
-                    soilLogger.error("ADC poll for conversion failed with status: %d", adcStatus);
-                    return 0.0;
-                    #endif
-                }
-                adc = HAL_ADC_GetValue(HMS_SOIL_SENSOR_hadc);
-                if(adcStatus != HAL_OK){
-                    #ifdef HMS_SOIL_SENSOR_LOGGER_ENABLED
-                    soilLogger.error("ADC get value failed with status: %d", adcStatus);
-                    return 0.0;
-                    #endif
-                }
+                adc = (float)raw;
             #elif defined(HMS_SOIL_SENSOR_PLATFORM_ESP_IDF)
             // ESP-IDF ADC reading - needs ADC configuration
                 adc = 2048; // Placeholder - needs actual ESP-IDF implementation
